@@ -57,6 +57,8 @@ body {
 .counter .num.bump { transform: scale(1.12); }
 .counter .sub { font-size: 26px; font-weight: 500; }
 
+
+
 .selection {
   background: #fff;
   border-bottom: 1px solid var(--border);
