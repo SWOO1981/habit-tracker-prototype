@@ -1,0 +1,173 @@
+:root {
+  --green: #34c759;
+  --red: #ff383c;
+  --border: #ddd;
+  --gray-bg: #e6e6e6;
+  --gray-item: #f7f7f7;
+  --gray-text: #666;
+  --zone: 84px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { margin: 0; }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* centers .phone once it's narrower than the viewport (desktop) */
+  justify-content: flex-start;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #000;
+}
+.phone {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  background: #fff;
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+/* Desktop / tablet preview: restore the phone-mockup chrome */
+@media (min-width: 500px) {
+  body { background: #fafafa; padding: 24px 0; justify-content: center; }
+  .phone {
+    min-height: auto;
+    border: 2px solid #000;
+    border-radius: 60px;
+  }
+}
+
+.counter {
+  background: var(--gray-bg);
+  padding: 32px 0px 32px 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  letter-spacing: 0.1px;
+  flex-shrink: 0;
+}
+.counter .label { font-size: 16px; font-weight: 500; }
+.counter .num { font-size: 60px; font-weight: 500; line-height: 1; margin: 4px 0; transition: transform 0.15s ease; }
+.counter .num.bump { transform: scale(1.12); }
+.counter .sub { font-size: 26px; font-weight: 500; }
+
+.selection {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 21px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.selection .title { font-size: 16px; font-weight: 500; letter-spacing: 0.1px; }
+.scale {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  width: 100%;
+}
+.scale button {
+  flex: 1;
+  border: none;
+  border-right: 1px solid var(--border);
+  background: var(--gray-item);
+  color: var(--gray-text);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 20px 0;
+  cursor: pointer;
+}
+.scale button:last-child { border-right: none; }
+.scale button.active { background: #000; color: #fff; }
+
+.habit-row {
+  position: relative;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+.habit-row.dragging { cursor: grabbing; }
+
+.track {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 0;
+  overflow: hidden;
+  transition: width 0.2s ease;
+  z-index: 0;
+}
+.habit-row.dragging .track { transition: none; }
+.track-left { left: 0; background: var(--green); }
+.track-right { right: 0; background: var(--red); }
+
+.thumb-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1;
+}
+.habit-row.dragging .thumb-indicator { transition: none; }
+.thumb-left { left: 30px; }
+.thumb-right { right: 30px; }
+
+.panel {
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 30px;
+  transition: transform 0.2s ease;
+}
+.habit-row.dragging .panel { transition: none; }
+.panel .icon { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; display: block; }
+.panel .name { font-size: 16px; font-weight: 500; letter-spacing: 0.1px; }
+
+.button-area {
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+}
+.record-btn {
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  background: #ccc;
+  color: #888;
+  min-width: 180px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.record-btn.ready { background: #000; color: #fff; }
+.record-btn.saved { background: var(--green); color: #fff; }
+.record-btn:active { transform: scale(0.97); }
