@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Habit Tracker Prototype</title>
+<style>
+  :root {
+    --green: #34c759;
+    --red: #ff383c;
+    --border: #ddd;
+    --gray-bg: #e6e6e6;
+    --gray-item: #f7f7f7;
+    --gray-text: #666;
+    --zone: 84px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #000;
+    padding: 24px 0;
+  }
+  .phone {
+    width: 393px;
+    max-width: 100vw;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 60px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .counter {
+    background: var(--gray-bg);
+    height: 202px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    letter-spacing: 0.1px;
+  }
+  .counter .label { font-size: 16px; font-weight: 500; }
+  .counter .num { font-size: 76px; font-weight: 500; line-height: 1; margin: 4px 0; transition: transform 0.15s ease; }
+  .counter .num.bump { transform: scale(1.12); }
+  .counter .sub { font-size: 26px; font-weight: 500; }
+
+  .selection {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 21px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .selection .title { font-size: 16px; font-weight: 500; letter-spacing: 0.1px; }
+  .scale {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    width: 100%;
+  }
+  .scale button {
+    flex: 1;
+    border: none;
+    border-right: 1px solid var(--border);
+    background: var(--gray-item);
+    color: var(--gray-text);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 20px 0;
+    cursor: pointer;
+  }
+  .scale button:last-child { border-right: none; }
+  .scale button.active { background: #000; color: #fff; }
+
+  .habit-row {
+    position: relative;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+  }
+  .habit-row.dragging { cursor: grabbing; }
+
+  .track {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 0;
+    overflow: hidden;
+    transition: width 0.2s ease;
+    z-index: 0;
+  }
+  .habit-row.dragging .track { transition: none; }
+  .track-left { left: 0; background: var(--green); }
+  .track-right { right: 0; background: var(--red); }
+
+  .thumb-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 1;
+  }
+  .habit-row.dragging .thumb-indicator { transition: none; }
+  .thumb-left { left: 30px; }
+  .thumb-right { right: 30px; }
+
+  .panel {
+    position: relative;
+    z-index: 2;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 30px;
+    transition: transform 0.2s ease;
+  }
+  .habit-row.dragging .panel { transition: none; }
+  .panel .icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+  .panel .name { font-size: 16px; font-weight: 500; letter-spacing: 0.1px; }
+
+  .button-area {
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+  }
+  .record-btn {
+    height: 48px;
+    padding: 0 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+    cursor: pointer;
+    background: #ccc;
+    color: #888;
+    min-width: 180px;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .record-btn.ready { background: #000; color: #fff; }
+  .record-btn.saved { background: var(--green); color: #fff; }
+  .record-btn:active { transform: scale(0.97); }
+
+  .hint {
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    margin-top: 12px;
+    max-width: 393px;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="phone">
+    <div class="counter">
+      <div class="label">Today</div>
+      <div class="num" id="pointsNum">0</div>
+      <div class="sub">points</div>
+    </div>
+
+    <div class="selection">
+      <div class="title">Neutrition</div>
+      <div class="scale" id="nutritionScale">
+        <button data-val="0">0</button>
+        <button data-val="1">1</button>
+        <button data-val="2">2</button>
+        <button data-val="3">3</button>
+        <button data-val="4">4</button>
+        <button data-val="5">5</button>
+      </div>
+    </div>
+
+    <div id="habitList"></div>
+
+    <div class="button-area">
+      <button class="record-btn" id="recordBtn">Record Points</button>
+    </div>
+  </div>
+  <div class="hint">Drag a row right to reveal the green true track, left for the red false track. Release to snap back to center — the committed state keeps a plain thumb icon at the leading (true) or trailing (false) edge.</div>
+</div>
+
+<script>
+  const ZONE = 84; // px drag distance to fully commit
+  const THRESHOLD = ZONE / 2;
+
+  const habits = [
+    { name: "Hydration", icon: "💧" },
+    { name: "Exercise", icon: "❤️" },
+    { name: "Mobility", icon: "🤸" },
+    { name: "Supplement", icon: "💊" },
+    { name: "Mindfulness", icon: "🪷" },
+    { name: "Lifestyle", icon: "✨" },
+  ];
+
+  // committed state per habit: null | true | false
+  const state = {
+    nutrition: null,
+    habits: habits.map(() => null),
+    recorded: false,
+  };
+
+  const habitList = document.getElementById("habitList");
+  const pointsNum = document.getElementById("pointsNum");
+  const recordBtn = document.getElementById("recordBtn");
+  const nutritionScale = document.getElementById("nutritionScale");
+
+  // Panel always rests centered (offset 0), so drag offset is just the
+  // live pointer delta, clamped to whatever direction the current
+  // committed state still allows.
+  function clampForState(committed, rawOffset) {
+    if (committed === true) return Math.max(-ZONE, Math.min(0, rawOffset));   // only drag left
+    if (committed === false) return Math.max(0, Math.min(ZONE, rawOffset));   // only drag right
+    return Math.max(-ZONE, Math.min(ZONE, rawOffset));                        // neutral: both ways
+  }
+
+  function resolveNewState(committed, offset) {
+    if (committed === true) return offset <= -THRESHOLD ? null : true;
+    if (committed === false) return offset >= THRESHOLD ? null : false;
+    if (offset >= THRESHOLD) return true;
+    if (offset <= -THRESHOLD) return false;
+    return null;
+  }
+
+  function buildRow(h, i) {
+    const row = document.createElement("div");
+    row.className = "habit-row";
+    row.innerHTML = `
+      <div class="track track-left"></div>
+      <div class="track track-right"></div>
+      <div class="thumb-indicator thumb-left">👍</div>
+      <div class="thumb-indicator thumb-right">👎</div>
+      <div class="panel">
+        <div class="icon">${h.icon}</div>
+        <div class="name">${h.name}</div>
+      </div>
+    `;
+    const trackLeft = row.querySelector(".track-left");
+    const trackRight = row.querySelector(".track-right");
+    const thumbLeft = row.querySelector(".thumb-left");
+    const thumbRight = row.querySelector(".thumb-right");
+    const panel = row.querySelector(".panel");
+
+    let startX = 0;
+    let dragging = false;
+
+    function applyLive(offset) {
+      const fraction = offset / ZONE; // -1..1
+      panel.style.transform = `translateX(${offset}px)`;
+      if (fraction > 0) {
+        trackLeft.style.width = `${fraction * ZONE}px`;
+        thumbLeft.style.opacity = fraction;
+        trackRight.style.width = "0px";
+        thumbRight.style.opacity = 0;
+      } else if (fraction < 0) {
+        trackRight.style.width = `${-fraction * ZONE}px`;
+        thumbRight.style.opacity = -fraction;
+        trackLeft.style.width = "0px";
+        thumbLeft.style.opacity = 0;
+      } else {
+        trackLeft.style.width = "0px";
+        trackRight.style.width = "0px";
+        thumbLeft.style.opacity = 0;
+        thumbRight.style.opacity = 0;
+      }
+    }
+
+    function applySettled(val) {
+      panel.style.transform = "translateX(0px)";
+      trackLeft.style.width = "0px";
+      trackRight.style.width = "0px";
+      thumbLeft.style.opacity = val === true ? 1 : 0;
+      thumbRight.style.opacity = val === false ? 1 : 0;
+    }
+
+    applySettled(state.habits[i]);
+
+    row.addEventListener("pointerdown", (e) => {
+      dragging = true;
+      row.classList.add("dragging");
+      startX = e.clientX;
+      row.setPointerCapture(e.pointerId);
+    });
+
+    row.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const raw = e.clientX - startX;
+      const clamped = clampForState(state.habits[i], raw);
+      applyLive(clamped);
+    });
+
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      row.classList.remove("dragging");
+      const raw = e.clientX - startX;
+      const clamped = clampForState(state.habits[i], raw);
+      const next = resolveNewState(state.habits[i], clamped);
+      state.habits[i] = next;
+      state.recorded = false;
+      // force reflow so the transition (re-enabled by removing .dragging) applies
+      void row.offsetWidth;
+      applySettled(next);
+      updateTotals();
+    }
+
+    row.addEventListener("pointerup", endDrag);
+    row.addEventListener("pointercancel", endDrag);
+
+    return row;
+  }
+
+  function renderHabits() {
+    habitList.innerHTML = "";
+    habits.forEach((h, i) => habitList.appendChild(buildRow(h, i)));
+  }
+
+  function updateTotals() {
+    const habitPoints = state.habits.filter((s) => s === true).length;
+    const total = (state.nutrition ?? 0) + habitPoints;
+
+    pointsNum.textContent = total;
+    pointsNum.classList.add("bump");
+    setTimeout(() => pointsNum.classList.remove("bump"), 150);
+
+    recordBtn.classList.remove("ready", "saved");
+    if (state.recorded) {
+      recordBtn.textContent = "Recorded!";
+      recordBtn.classList.add("saved");
+    } else if (total > 0) {
+      recordBtn.textContent = `Record ${total} Point${total === 1 ? "" : "s"}`;
+      recordBtn.classList.add("ready");
+    } else {
+      recordBtn.textContent = "Record Points";
+    }
+  }
+
+  function renderNutrition() {
+    [...nutritionScale.children].forEach((btn) => {
+      const val = Number(btn.dataset.val);
+      btn.classList.toggle("active", state.nutrition !== null && val <= state.nutrition);
+    });
+  }
+
+  nutritionScale.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const val = Number(btn.dataset.val);
+    state.nutrition = state.nutrition === val ? null : val;
+    state.recorded = false;
+    renderNutrition();
+    updateTotals();
+  });
+
+  recordBtn.addEventListener("click", () => {
+    const habitPoints = state.habits.filter((s) => s === true).length;
+    const total = (state.nutrition ?? 0) + habitPoints;
+    if (total > 0 && !state.recorded) {
+      state.recorded = true;
+      updateTotals();
+    }
+  });
+
+  renderHabits();
+  renderNutrition();
+  updateTotals();
+</script>
+</body>
+</html>
