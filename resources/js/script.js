@@ -198,6 +198,10 @@ recordBtn.addEventListener("click", () => {
   if (total > 0 && !state.recorded) {
     state.recorded = true;
     updateTotals();
+    sessionStorage.setItem("habitPoints", total);
+    setTimeout(() => {
+      window.location.href = "confirmation.html";
+    }, 400); // brief pause so "Recorded!" is visible before the screen changes
   }
 });
 
