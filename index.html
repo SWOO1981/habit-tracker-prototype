@@ -272,7 +272,12 @@
     const panel = row.querySelector(".panel");
 
     let startX = 0;
-    let dragging = false;
+    let startY = 0;
+    // "pending" = touch down, direction not yet decided
+    // "dragging" = confirmed horizontal gesture, we own it
+    // "scrolling" = confirmed vertical gesture, hand off to the browser
+    let phase = "idle";
+    const LOCK = 10; // px of movement before we decide the gesture's direction
 
     function applyLive(offset) {
       const fraction = offset / ZONE; // -1..1
@@ -306,23 +311,40 @@
     applySettled(state.habits[i]);
 
     row.addEventListener("pointerdown", (e) => {
-      dragging = true;
-      row.classList.add("dragging");
+      phase = "pending";
       startX = e.clientX;
-      row.setPointerCapture(e.pointerId);
+      startY = e.clientY;
+      // no setPointerCapture here — we don't yet know if this is a drag,
+      // so the browser stays free to treat it as a scroll if it turns out vertical
     });
 
     row.addEventListener("pointermove", (e) => {
-      if (!dragging) return;
-      const raw = e.clientX - startX;
-      const clamped = clampForState(state.habits[i], raw);
+      if (phase === "idle" || phase === "scrolling") return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (phase === "pending") {
+        if (Math.abs(dx) < LOCK && Math.abs(dy) < LOCK) return; // not enough movement to decide yet
+        if (Math.abs(dy) > Math.abs(dx)) {
+          phase = "scrolling"; // vertical intent — bail out, let native scroll handle the rest
+          return;
+        }
+        // horizontal intent confirmed — now, and only now, take over the gesture
+        phase = "dragging";
+        row.classList.add("dragging");
+        row.setPointerCapture(e.pointerId);
+      }
+
+      const clamped = clampForState(state.habits[i], dx);
       applyLive(clamped);
     });
 
     function endDrag(e) {
-      if (!dragging) return;
-      dragging = false;
+      const wasDragging = phase === "dragging";
+      phase = "idle";
       row.classList.remove("dragging");
+      if (!wasDragging) return; // tap or a gesture that resolved to scrolling — no commit
       const raw = e.clientX - startX;
       const clamped = clampForState(state.habits[i], raw);
       const next = resolveNewState(state.habits[i], clamped);
