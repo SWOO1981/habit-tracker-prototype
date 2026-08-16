@@ -153,7 +153,7 @@
     transition: transform 0.2s ease;
   }
   .habit-row.dragging .panel { transition: none; }
-  .panel .icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+  .panel .icon { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; display: block; }
   .panel .name { font-size: 16px; font-weight: 500; letter-spacing: 0.1px; }
 
   .button-area {
@@ -215,13 +215,14 @@
   const THRESHOLD = ZONE / 2;
 
   const habits = [
-    { name: "Hydration", icon: "💧" },
-    { name: "Exercise", icon: "❤️" },
-    { name: "Mobility", icon: "🤸" },
-    { name: "Supplement", icon: "💊" },
-    { name: "Mindfulness", icon: "🪷" },
-    { name: "Lifestyle", icon: "✨" },
+    { name: "Hydration", icon: "icon-drop.svg" },
+    { name: "Exercise", icon: "icon-heart.svg" },
+    { name: "Mobility", icon: "icon-stretch.svg" },
+    { name: "Supplement", icon: "icon-vitamin.svg" },
+    { name: "Mindfulness", icon: "icon-lotus.svg" },
+    { name: "Lifestyle", icon: "icon-sparkel.svg" },
   ];
+  const ICON_PATH = "resources/images/icons/";
 
   // committed state per habit: null | true | false
   const state = {
@@ -261,7 +262,7 @@
       <div class="thumb-indicator thumb-left">👍</div>
       <div class="thumb-indicator thumb-right">👎</div>
       <div class="panel">
-        <div class="icon">${h.icon}</div>
+        <img class="icon" src="${ICON_PATH}${h.icon}" alt="" aria-hidden="true">
         <div class="name">${h.name}</div>
       </div>
     `;
