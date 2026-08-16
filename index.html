@@ -1,7 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Habit Tracker Prototype</title>
 <style>
   :root {
@@ -16,25 +18,36 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0;
-    min-height: 100%;
-    background: #fafafa;
+    min-height: 100dvh;
+    background: #fff;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: #000;
-    padding: 24px 0;
   }
   .phone {
-    width: 393px;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 430px;
+    min-height: 100dvh;
     background: #fff;
-    border: 2px solid #000;
-    border-radius: 60px;
+    border: none;
+    border-radius: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
   }
+  /* Desktop / tablet preview: restore the phone-mockup chrome */
+  @media (min-width: 500px) {
+    html, body { background: #fafafa; padding: 24px 0; justify-content: center; }
+    .phone {
+      min-height: auto;
+      border: 2px solid #000;
+      border-radius: 60px;
+    }
+  }
+
   .counter {
     background: var(--gray-bg);
     height: 202px;
@@ -44,6 +57,7 @@
     justify-content: center;
     text-align: center;
     letter-spacing: 0.1px;
+    flex-shrink: 0;
   }
   .counter .label { font-size: 16px; font-weight: 500; }
   .counter .num { font-size: 76px; font-weight: 500; line-height: 1; margin: 4px 0; transition: transform 0.15s ease; }
@@ -145,6 +159,7 @@
     padding: 40px;
     display: flex;
     justify-content: center;
+    margin-top: auto;
   }
   .record-btn {
     height: 48px;
@@ -168,41 +183,39 @@
     text-align: center;
     font-size: 12px;
     color: #999;
-    margin-top: 12px;
-    max-width: 393px;
+    padding: 12px 24px;
+    max-width: 430px;
   }
 </style>
 </head>
 <body>
 
-<div>
-  <div class="phone">
-    <div class="counter">
-      <div class="label">Today</div>
-      <div class="num" id="pointsNum">0</div>
-      <div class="sub">points</div>
-    </div>
+<div class="phone">
+  <div class="counter">
+    <div class="label">Today</div>
+    <div class="num" id="pointsNum">0</div>
+    <div class="sub">points</div>
+  </div>
 
-    <div class="selection">
-      <div class="title">Neutrition</div>
-      <div class="scale" id="nutritionScale">
-        <button data-val="0">0</button>
-        <button data-val="1">1</button>
-        <button data-val="2">2</button>
-        <button data-val="3">3</button>
-        <button data-val="4">4</button>
-        <button data-val="5">5</button>
-      </div>
-    </div>
-
-    <div id="habitList"></div>
-
-    <div class="button-area">
-      <button class="record-btn" id="recordBtn">Record Points</button>
+  <div class="selection">
+    <div class="title">Neutrition</div>
+    <div class="scale" id="nutritionScale">
+      <button data-val="0">0</button>
+      <button data-val="1">1</button>
+      <button data-val="2">2</button>
+      <button data-val="3">3</button>
+      <button data-val="4">4</button>
+      <button data-val="5">5</button>
     </div>
   </div>
-  <div class="hint">Drag a row right to reveal the green true track, left for the red false track. Release to snap back to center — the committed state keeps a plain thumb icon at the leading (true) or trailing (false) edge.</div>
+
+  <div id="habitList"></div>
+
+  <div class="button-area">
+    <button class="record-btn" id="recordBtn">Record Points</button>
+  </div>
 </div>
+<div class="hint">Drag a row right to reveal the green true track, left for the red false track. Release to snap back to center — the committed state keeps a plain thumb icon at the leading (true) or trailing (false) edge.</div>
 
 <script>
   const ZONE = 84; // px drag distance to fully commit
